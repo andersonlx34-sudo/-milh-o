@@ -317,6 +317,69 @@ body {
 }
 
 /* =====================================
+   CAMPO DE NOME DO JOGADOR
+===================================== */
+
+.name-input-area {
+    margin: 22px 0 10px;
+    text-align: left;
+}
+
+.name-input-area label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--cyan);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.name-input-area input {
+    width: 100%;
+    max-width: 320px;
+    padding: 12px 16px;
+
+    color: var(--white);
+    background: rgba(15, 23, 42, 0.75);
+    border: 2px solid rgba(103, 232, 249, 0.45);
+    border-radius: 12px;
+
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.name-input-area input::placeholder {
+    color: #8f89b0;
+}
+
+.name-input-area input:focus {
+    border-color: var(--cyan);
+    box-shadow: 0 0 0 3px rgba(103, 232, 249, 0.22);
+}
+
+/* Nome durante o jogo */
+.player-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--cyan);
+    letter-spacing: 0.3px;
+    margin-bottom: 6px;
+}
+
+/* Nome na tela final */
+.end-player {
+    font-size: 1.25rem;
+    margin: 14px 0 8px;
+    color: var(--white);
+}
+
+.end-player span {
+    color: var(--cyan);
+    font-weight: 800;
+}
+
+/* =====================================
    ESTATÍSTICAS DA TELA INICIAL
 ===================================== */
 
@@ -1263,6 +1326,10 @@ body {
 
     .option-btn {
         min-height: 54px;
+    }
+
+    .name-input-area input {
+        max-width: 100%;
     }
 
     .footer {
