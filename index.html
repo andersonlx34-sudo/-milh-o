@@ -46,6 +46,12 @@
         <!-- TELA INICIAL -->
         <section id="screen-start" class="screen active">
 
+        <div class="name-input-area">
+            
+    <label for="player-name-input">Seu nome:</label>
+    <input type="text" id="player-name-input" placeholder="Digite seu nome aqui" maxlength="20" autocomplete="off">
+
+        </div>
             <div class="hero">
 
                 <div class="hero-content">
@@ -189,7 +195,7 @@
         <!-- TELA DO JOGO -->
         <section id="screen-game" class="screen">
 
-            <div class="game-header">
+            <div id="player-name-display" class="player-name"></div>
                 <span>⌘ MISSÃO EM ANDAMENTO</span>
 
                 <div class="question-counter">
@@ -297,35 +303,21 @@
 
                         <h3>✧ Ajudas especiais</h3>
 
-                        <button id="help-bios" onclick="useBios()">
-                            <span class="help-icon">⌘</span>
-                            <span class="help-description">
-                                <strong>Reset da BIOS</strong>
-                                <small>Elimina 2 erradas</small>
-                            </span>
-                            <span class="help-count">1x</span>
-                        </button>
+                       <button id="help-bios" ...>
+    Limpar Cache
+    <span class="help-count">1x</span>
+</button>
 
-                        <button id="help-forum" onclick="useForum()">
-                            <span class="help-icon">♧</span>
-                            <span class="help-description">
-                                <strong>Fórum Tech</strong>
-                                <small>Consulta especialistas</small>
-                            </span>
-                            <span class="help-count">1x</span>
-                        </button>
+                <button id="help-forum" ...>
+                        Perguntar na Comunidade
+                         <span class="help-count">1x</span>
+                </button>
 
-                        <button id="help-senior" onclick="useSenior()">
-                            <span class="help-icon">◉</span>
-                            <span class="help-description">
-                                <strong>Técnico Sênior</strong>
-                                <small>Dica decisiva</small>
-                            </span>
-                            <span class="help-count">1x</span>
-                        </button>
+                <button id="help-senior" ...>
+                        Consultar o Expert
+                    <span class="help-count">1x</span>
 
-                    </div>
-
+                </button>
                     <!-- STATUS -->
                     <div class="rank-panel">
                         <small>✦ SEU STATUS</small>
@@ -346,6 +338,8 @@
                 <div class="trophy">♛</div>
 
                 <p class="eyebrow">MISSÃO FINALIZADA</p>
+
+                <p class="end-player">Parabéns, <span id="end-player-name"></span>!</p>
 
                 <h2 id="end-title">Fim de jogo</h2>
 
