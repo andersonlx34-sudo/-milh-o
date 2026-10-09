@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#10052f">
+
+    <title>O Milhão da Manutenção</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Fontes -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Nosso CSS -->
+    <link rel="stylesheet" href="assets/css/jogo.css">
+</head>
+
+<body>
+
+    <!-- Fundo espacial -->
+    <canvas id="star-canvas"></canvas>
+    <div class="nebula nebula-one"></div>
+    <div class="nebula nebula-two"></div>
+    <div class="shooting-star"></div>
+
+    <main class="container main-container">
+
+        <!-- CABEÇALHO -->
+        <header class="topbar">
+            <a href="#" class="brand" onclick="backToMenu(); return false;">
+                <span class="brand-icon">⌘</span>
+
+                <span>
+                    O MILHÃO
+                    <small>DA MANUTENÇÃO</small>
+                </span>
+            </a>
+
+            <span class="system-status">
+                <i></i> SIMULADOR TECH
+            </span>
+        </header>
+
+        <!-- TELA INICIAL -->
+        <section id="screen-start" class="screen active">
+
+            <div class="hero">
+
+                <div class="hero-content">
+                    <p class="eyebrow">✦ DESAFIO DE CONHECIMENTO</p>
+
+                    <h1>
+                        Seu próximo nível<br>
+                        é <em>um milhão.</em>
+                    </h1>
+
+                    <p class="description">
+                        Entre na órbita da tecnologia, responda a 10 perguntas
+                        e prove que você entende de hardware, software e redes.
+                    </p>
+
+                    <div class="hero-buttons">
+                        <button class="btn btn-cosmic btn-lg" onclick="startGame()">
+                            ▶ Iniciar missão
+                        </button>
+
+                        <button class="btn btn-outline-cosmic btn-lg" onclick="showRules()">
+                            Como jogar
+                        </button>
+                    </div>
+
+                    <div class="statistics">
+                        <div>
+                            <strong>10</strong>
+                            <span>Perguntas</span>
+                        </div>
+
+                        <div>
+                            <strong>3</strong>
+                            <span>Ajudas especiais</span>
+                        </div>
+
+                        <div>
+                            <strong>R$ 1 mi</strong>
+                            <span>Prêmio máximo</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PLANETA FEITO COM CSS -->
+                <div class="space-art">
+                    <div class="orbit orbit-one"></div>
+                    <div class="orbit orbit-two"></div>
+
+                    <div class="planet">
+                        <span class="planet-crater crater-one"></span>
+                        <span class="planet-crater crater-two"></span>
+                        <span class="planet-crater crater-three"></span>
+                    </div>
+
+                    <div class="moon"></div>
+                    <div class="floating-chip">⌘</div>
+
+                    <div class="planet-caption">
+                        ● SISTEMA PRONTO
+                        <small>BYTE ESTÁ TE ESPERANDO</small>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="features">
+
+                <div class="feature">
+                    <span>✧</span>
+                    <div>
+                        <strong>Conhecimento</strong>
+                        <small>Hardware, redes e suporte</small>
+                    </div>
+                </div>
+
+                <div class="feature">
+                    <span>ϟ</span>
+                    <div>
+                        <strong>Estratégia</strong>
+                        <small>Use as ajudas na hora certa</small>
+                    </div>
+                </div>
+
+                <div class="feature">
+                    <span>♛</span>
+                    <div>
+                        <strong>Grande prêmio</strong>
+                        <small>Chegue até a última pergunta</small>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- TELA DE REGRAS -->
+        <section id="screen-rules" class="screen">
+
+            <article class="panel rules-panel">
+                <p class="eyebrow">✦ MANUAL DA MISSÃO</p>
+
+                <h2>Regras da <em>órbita</em></h2>
+
+                <ul class="rules-list">
+                    <li>
+                        <strong>01 · Dez desafios</strong>
+                        <small>As perguntas ficam mais difíceis a cada nível.</small>
+                    </li>
+
+                    <li>
+                        <strong>02 · Acertou, avançou</strong>
+                        <small>Cada resposta correta leva você ao próximo prêmio.</small>
+                    </li>
+
+                    <li>
+                        <strong>03 · Três ajudas especiais</strong>
+                        <small>
+                            Reset da BIOS elimina duas alternativas erradas.
+                            Fórum Tech consulta especialistas.
+                            Técnico Sênior revela a resposta.
+                        </small>
+                    </li>
+
+                    <li>
+                        <strong>04 · Você decide quando parar</strong>
+                        <small>Ao parar, garante metade do prêmio do nível anterior.</small>
+                    </li>
+
+                    <li>
+                        <strong>05 · Atenção à resposta</strong>
+                        <small>Uma resposta errada encerra a missão.</small>
+                    </li>
+                </ul>
+
+                <button class="btn btn-cosmic w-100" onclick="backToMenu()">
+                    ← Voltar ao menu
+                </button>
+            </article>
+
+        </section>
+
+        <!-- TELA DO JOGO -->
+        <section id="screen-game" class="screen">
+
+            <div class="game-header">
+                <span>⌘ MISSÃO EM ANDAMENTO</span>
+
+                <div class="question-counter">
+                    PERGUNTA
+                    <strong id="current-q">1</strong>
+                    <span>/10</span>
+                </div>
+            </div>
+
+            <div class="game-layout">
+
+                <!-- COLUNA PRINCIPAL -->
+                <div class="main-game">
+
+                    <!-- PROGRESSO DO PRÊMIO -->
+                    <div class="progress-panel">
+
+                        <div class="progress-heading">
+                            <span>PROGRESSO DO PRÊMIO</span>
+                            <strong id="current-prize">R$ 0</strong>
+                        </div>
+
+                        <div class="progress-track">
+                            <div id="prize-progress-fill"></div>
+                        </div>
+
+                        <div class="progress-labels">
+                            <span>R$ 1 mil</span>
+                            <span>R$ 100 mil</span>
+                            <span>R$ 1 milhão</span>
+                        </div>
+
+                    </div>
+
+                    <!-- PERGUNTA -->
+                    <article class="question-panel">
+
+                        <div class="question-meta">
+                            <span id="question-level">NÍVEL 1 · BÁSICO</span>
+                            <span class="live-status">● AO VIVO</span>
+                        </div>
+
+                        <h2 id="question-text">
+                            Carregando pergunta...
+                        </h2>
+
+                        <!-- ALTERNATIVAS -->
+                        <div id="options-container" class="options">
+
+                            <button class="option-btn" id="opt-0" onclick="selectOption(0)">
+                                Alternativa A
+                            </button>
+
+                            <button class="option-btn" id="opt-1" onclick="selectOption(1)">
+                                Alternativa B
+                            </button>
+
+                            <button class="option-btn" id="opt-2" onclick="selectOption(2)">
+                                Alternativa C
+                            </button>
+
+                            <button class="option-btn" id="opt-3" onclick="selectOption(3)">
+                                Alternativa D
+                            </button>
+
+                        </div>
+
+                        <div id="answer-feedback" class="answer-feedback" role="status" aria-live="polite"></div>
+
+                        <!-- CONTROLES -->
+                        <div class="game-controls">
+
+                            <button class="btn btn-stop" onclick="stopGame()">
+                                Parar
+                                <span id="stop-val">R$ 0</span>
+                            </button>
+
+                            <button class="btn btn-cosmic" id="btn-confirm" onclick="confirmAnswer()" disabled>
+                                Confirmar resposta →
+                            </button>
+
+                        </div>
+
+                    </article>
+                </div>
+
+                <!-- COLUNA LATERAL -->
+                <aside class="sidebar">
+
+                    <!-- MASCOTE -->
+                    <div class="mascot-card">
+                        <div class="fish">🐠</div>
+
+                        <div>
+                            <small>MASCOTE OFICIAL</small>
+                            <h3>Byte</h3>
+                            <p id="byte-message">
+                                Bora mostrar que você entende de tecnologia!
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- AJUDAS -->
+                    <div class="help-panel">
+
+                        <h3>✧ Ajudas especiais</h3>
+
+                        <button id="help-bios" onclick="useBios()">
+                            <span class="help-icon">⌘</span>
+                            <span class="help-description">
+                                <strong>Reset da BIOS</strong>
+                                <small>Elimina 2 erradas</small>
+                            </span>
+                            <span class="help-count">1x</span>
+                        </button>
+
+                        <button id="help-forum" onclick="useForum()">
+                            <span class="help-icon">♧</span>
+                            <span class="help-description">
+                                <strong>Fórum Tech</strong>
+                                <small>Consulta especialistas</small>
+                            </span>
+                            <span class="help-count">1x</span>
+                        </button>
+
+                        <button id="help-senior" onclick="useSenior()">
+                            <span class="help-icon">◉</span>
+                            <span class="help-description">
+                                <strong>Técnico Sênior</strong>
+                                <small>Dica decisiva</small>
+                            </span>
+                            <span class="help-count">1x</span>
+                        </button>
+
+                    </div>
+
+                    <!-- STATUS -->
+                    <div class="rank-panel">
+                        <small>✦ SEU STATUS</small>
+                        <strong id="player-status">Aprendiz Tech</strong>
+                        <p>Continue avançando para subir de nível.</p>
+                    </div>
+
+                </aside>
+
+            </div>
+        </section>
+
+        <!-- TELA FINAL -->
+        <section id="screen-end" class="screen">
+
+            <article class="panel end-panel">
+
+                <div class="trophy">♛</div>
+
+                <p class="eyebrow">MISSÃO FINALIZADA</p>
+
+                <h2 id="end-title">Fim de jogo</h2>
+
+                <p id="end-message">Você faturou...</p>
+
+                <div id="end-prize" class="final-prize">R$ 0</div>
+
+                <div class="result-summary">
+                    <span>Perguntas respondidas</span>
+                    <strong id="end-questions">0/10</strong>
+                </div>
+
+                <button class="btn btn-cosmic w-100 mt-4" onclick="backToMenu()">
+                    ↻ Jogar novamente
+                </button>
+
+            </article>
+
+        </section>
+
+        <!-- RODAPÉ -->
+        <footer class="footer">
+            <span>© 2026 O Milhão da Manutenção</span>
+            <span>FEITO PARA QUEM CURTE TECNOLOGIA ✦</span>
+        </footer>
+
+    </main>
+
+    <!-- MODAL DAS AJUDAS -->
+    <div class="modal fade" id="helpModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content cosmic-modal">
+
+                <div class="modal-header">
+                    <h5 class="modal-title" id="helpModalTitle">Ajuda especial</h5>
+
+                    <button type="button" class="btn-close btn-close-white"
+                        data-bs-dismiss="modal" aria-label="Fechar">
+                    </button>
+                </div>
+
+                <div class="modal-body" id="helpModalBody">
+                    Texto da ajuda...
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-cosmic w-100" data-bs-dismiss="modal">
+                        Entendi
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Nosso JavaScript -->
+    <script src="assets/js script/script.js"></script>
+
+</body>
+</html>
