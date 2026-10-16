@@ -1,6 +1,6 @@
 /* =====================================
    O MILHÃO DA MANUTENÇÃO
-   CSS - VISUAL ESPACIAL
+   CSS - VISUAL ESPACIAL & HANGAR
 ===================================== */
 
 :root {
@@ -358,7 +358,6 @@ body {
     box-shadow: 0 0 0 3px rgba(103, 232, 249, 0.22);
 }
 
-/* Nome durante o jogo */
 .player-name {
     font-size: 0.95rem;
     font-weight: 700;
@@ -367,7 +366,6 @@ body {
     margin-bottom: 6px;
 }
 
-/* Nome na tela final */
 .end-player {
     font-size: 1.25rem;
     margin: 14px 0 8px;
@@ -1178,7 +1176,7 @@ body {
 }
 
 /* =====================================
-   RESPONSIVIDADE - TABLETS
+   RESPONSIVIDADE - TABLETS & CELULARES
 ===================================== */
 
 @media (max-width: 900px) {
@@ -1203,10 +1201,6 @@ body {
         grid-column: 1 / -1;
     }
 }
-
-/* =====================================
-   RESPONSIVIDADE - CELULARES
-===================================== */
 
 @media (max-width: 620px) {
     .main-container {
@@ -1339,10 +1333,6 @@ body {
         text-align: center;
     }
 }
-
-/* =====================================
-   ACESSIBILIDADE
-===================================== */
 
 @media (prefers-reduced-motion: reduce) {
     *,
