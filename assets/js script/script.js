@@ -1,12 +1,22 @@
 /* =====================================
    O MILHÃO DA MANUTENÇÃO
-   JAVASCRIPT - VERSÃO COMPLETA
-   (com explicações + nome do jogador + ajudas claras)
+   JAVASCRIPT - COM TOP 10 E LOJA DINÂMICA
 ===================================== */
 
+function $(id) {
+    return document.getElementById(id);
+}
+
+function formatMoney(value) {
+    return Number(value).toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+        maximumFractionDigits: 0
+    });
+}
 
 /* ==========================================
-   BANCO DE PERGUNTAS (com explicação)
+   BANCO DE PERGUNTAS
 ========================================== */
 
 function criarPergunta(nivel, texto, alternativas, correta, explicacao) {
@@ -269,7 +279,7 @@ const questionBank = [
     criarPergunta(3, "Qual é uma boa primeira etapa para diagnosticar perda intermitente de rede?", ["Verificar conexões, sinal, endereço IP e registros do equipamento", "Formatar todos os computadores imediatamente", "Trocar todas as peças sem testes", "Desativar a segurança da rede"], 0,
         "Sempre comece pelo básico: cabos, sinal Wi-Fi, IP correto e logs do roteador/equipamento."),
     
-    criarPergunta(3, "O que é uma vulnerabilidade de software?", ["Fraqueza que pode ser explorada para comprometer um sistema", "Uma função de backup", "Um tipo de cabo", "Uma configuração de brilho"], 0,
+    criarPergunta(3, "O que é uma vulnerabilidade de software?", ["Fraqueza que pode ser explorada para comprometer um sistema", "Uma função de backup", "Uma ferramenta de limpeza", "Uma configuração de brilho"], 0,
         "Vulnerabilidade é uma falha no software que um atacante pode usar para invadir ou danificar o sistema."),
     
     criarPergunta(3, "Qual é uma finalidade do princípio do menor privilégio?", ["Conceder apenas as permissões necessárias para cada função", "Dar acesso administrativo a todos", "Compartilhar senhas", "Desativar registros de auditoria"], 0,
@@ -314,7 +324,6 @@ const questionBank = [
     criarPergunta(3, "Qual é uma diferença entre TCP e UDP?", ["TCP oferece entrega confiável e ordenada; UDP tem menos mecanismos de controle", "UDP sempre garante entrega e ordem", "TCP só funciona em redes sem fio", "São conectores físicos iguais"], 0,
         "TCP garante que os dados cheguem na ordem e sem perdas. UDP é mais rápido, mas não garante entrega.")
 ];
-
 
 /* =====================================
    FUNÇÕES DE SORTEIO
@@ -362,13 +371,11 @@ function sortearPerguntasDaPartida() {
     ].map(prepararPergunta);
 }
 
-
 /* =====================================
    VALORES DOS PRÊMIOS
 ===================================== */
 
 const prizes = [1000, 5000, 10000, 30000, 50000, 100000, 200000, 300000, 500000, 1000000];
-
 
 /* =====================================
    VARIÁVEIS DO JOGO
@@ -382,24 +389,61 @@ let answerLocked = false;
 let gameEnded = true;
 let questionTimeout = null;
 let playerName = "";
-
+let lastEarnedPrize = 0;
 
 /* =====================================
-   UTILITÁRIOS
+   SISTEMA DE RANKING / TOP 10 (LOCALSTORAGE)
 ===================================== */
 
-function $(id) {
-    return document.getElementById(id);
+function getRanking() {
+    const data = localStorage.getItem("milhao_ranking");
+    return data ? JSON.parse(data) : [];
 }
 
-function formatMoney(value) {
-    return Number(value).toLocaleString("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-        maximumFractionDigits: 0
-    });
+function saveScoreToRanking(name, prize, mgPoints = 0) {
+    if (!name) return;
+    const ranking = getRanking();
+    
+    // Atualiza se o jogador já existir ou adiciona um novo
+    const existingIndex = ranking.findIndex(r => r.name.toLowerCase() === name.toLowerCase());
+    
+    if (existingIndex !== -1) {
+        if (prize > ranking[existingIndex].prize || mgPoints > ranking[existingIndex].mgPoints) {
+            ranking[existingIndex].prize = Math.max(ranking[existingIndex].prize, prize);
+            ranking[existingIndex].mgPoints = Math.max(ranking[existingIndex].mgPoints, mgPoints);
+        }
+    } else {
+        ranking.push({ name, prize, mgPoints });
+    }
+
+    // Ordena pelo prêmio e depois pelos pontos no mini-game
+    ranking.sort((a, b) => b.prize - a.prize || b.mgPoints - a.mgPoints);
+
+    // Mantém apenas o TOP 10
+    const top10 = ranking.slice(0, 10);
+    localStorage.setItem("milhao_ranking", JSON.stringify(top10));
+    renderRanking();
 }
 
+function renderRanking() {
+    const tbody = $("ranking-tbody");
+    if (!tbody) return;
+    const ranking = getRanking();
+
+    if (ranking.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">Nenhum jogador registrado no ranking ainda.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = ranking.map((r, index) => `
+        <tr>
+            <td style="color: var(--gold); font-weight: bold;">${index + 1}º</td>
+            <td><strong>${r.name}</strong></td>
+            <td><span style="color: #4ade80;">${formatMoney(r.prize)}</span></td>
+            <td><span style="color: var(--cyan);">${r.mgPoints} pts</span></td>
+        </tr>
+    `).join("");
+}
 
 /* =====================================
    NAVEGAÇÃO ENTRE TELAS
@@ -424,27 +468,29 @@ function backToMenu() {
         clearTimeout(questionTimeout);
         questionTimeout = null;
     }
-    if (window.bootstrap && $("helpModal")) {
-        bootstrap.Modal.getInstance($("helpModal"))?.hide();
-    }
+    renderRanking();
     showScreen("screen-start");
 }
-
 
 /* =====================================
    INICIAR O JOGO
 ===================================== */
 
-
 function startGame() {
     const nameInput = $("player-name-input");
-    playerName = nameInput ? nameInput.value.trim() : "";
+    const newPlayerName = nameInput ? nameInput.value.trim() : "";
 
-    if (!playerName) {
+    if (!newPlayerName) {
         alert("Digite seu nome para começar a missão!");
         if (nameInput) nameInput.focus();
         return;
     }
+
+    // RESET COMPLETO DA LOJA PARA O NOVO JOGADOR
+    playerName = newPlayerName;
+    playerCredits = 0;
+    ownedShips = [true, false, false, false, false];
+    selectedShipIndex = 0;
 
     if (questionTimeout !== null) {
         clearTimeout(questionTimeout);
@@ -475,7 +521,6 @@ function startGame() {
         }
     });
 
-    // Mostra o nome do jogador
     if ($("player-name-display")) {
         $("player-name-display").textContent = "Jogador: " + playerName;
     }
@@ -483,7 +528,6 @@ function startGame() {
     showScreen("screen-game");
     loadQuestion();
 }
-
 
 /* =====================================
    CARREGAR PERGUNTA
@@ -533,7 +577,6 @@ function loadQuestion() {
     }
 }
 
-
 /* =====================================
    SELECIONAR E CONFIRMAR RESPOSTA
 ===================================== */
@@ -578,7 +621,6 @@ function confirmAnswer() {
         $("prize-progress-fill").style.width =
             ((currentQuestionIndex + 1) / questions.length * 100) + "%";
 
-        // Tempo maior para dar tempo de ler a explicação
         questionTimeout = setTimeout(() => {
             questionTimeout = null;
             if (gameEnded) return;
@@ -617,7 +659,6 @@ function confirmAnswer() {
     }
 }
 
-
 /* =====================================
    PARAR O JOGO
 ===================================== */
@@ -629,7 +670,6 @@ function stopGame() {
         : prizes[currentQuestionIndex - 1] / 2;
     endGame(false, guaranteedPrize, true);
 }
-
 
 /* =====================================
    FINALIZAR O JOGO
@@ -643,9 +683,13 @@ function endGame(victory, amount, stopped = false) {
 
     gameEnded = true;
     answerLocked = true;
+    lastEarnedPrize = amount;
+
+    // SALVA A PONTUAÇÃO DO JOGADOR NO RANKING
+    saveScoreToRanking(playerName, amount, 0);
+
     showScreen("screen-end");
 
-    // Mostra o nome do jogador na tela final
     if ($("end-player-name")) {
         $("end-player-name").textContent = playerName;
     }
@@ -653,119 +697,424 @@ function endGame(victory, amount, stopped = false) {
     if (victory) {
         $("prize-progress-fill").style.width = "100%";
         $("end-title").textContent = "Mestre Tech!";
-        $("end-message").textContent =
-            "Você acertou as dez perguntas e conquistou o grande prêmio!";
+        $("end-message").textContent = "Você acertou as dez perguntas e conquistou o grande prêmio de 1 Milhão! O Hangar de Naves foi liberado!";
         $("end-questions").textContent = "10/10";
     } else if (stopped) {
         $("end-title").textContent = "Retirada estratégica!";
-        $("end-message").textContent =
-            "Você decidiu parar e garantir parte do prêmio acumulado. Boa estratégia!";
+        $("end-message").textContent = "Você decidiu parar e garantir parte do prêmio acumulado. Boa estratégia!";
         $("end-questions").textContent = currentQuestionIndex + "/10";
     } else {
         $("end-title").textContent = "Fim de missão!";
-        $("end-message").textContent =
-            "Uma resposta errada encerrou a missão. Use o que aprendeu e tente novamente!";
+        $("end-message").textContent = "Uma resposta errada encerrou a missão. Use o que aprendeu e tente novamente!";
         $("end-questions").textContent = (currentQuestionIndex + 1) + "/10";
     }
 
     $("end-prize").textContent = formatMoney(amount);
 }
 
+function openShopFromEnd() {
+    openShop(lastEarnedPrize);
+}
+
+/* ==========================================
+   SISTEMA DE AJUDAS
+========================================== */
+
+function podeUsarAjuda(nome) {
+    return (
+        helpsAvailable[nome] === true &&
+        !answerLocked &&
+        !gameEnded &&
+        questions.length > 0 &&
+        questions[currentQuestionIndex] !== undefined
+    );
+}
+
+function consumirAjuda(nome) {
+    if (!helpsAvailable[nome]) return false;
+
+    helpsAvailable[nome] = false;
+    const botao = document.getElementById("help-" + nome);
+
+    if (botao) {
+        botao.disabled = true;
+        const contador = botao.querySelector(".help-count");
+        if (contador) contador.textContent = "Usada";
+    }
+
+    return true;
+}
+
+function showHelpModal(titulo, mensagem) {
+    const tituloElemento = document.getElementById("helpModalTitle");
+    const corpoElemento = document.getElementById("helpModalBody");
+    const modalElemento = document.getElementById("helpModal");
+
+    if (tituloElemento && corpoElemento) {
+        tituloElemento.textContent = titulo;
+        corpoElemento.textContent = mensagem;
+    }
+
+    if (modalElemento && window.bootstrap && window.bootstrap.Modal) {
+        bootstrap.Modal.getOrCreateInstance(modalElemento).show();
+    } else {
+        alert(titulo + "\n\n" + mensagem);
+    }
+}
+
+function useBios() {
+    if (!podeUsarAjuda("bios")) return;
+    const pergunta = questions[currentQuestionIndex];
+    const alternativasErradas = [];
+
+    for (let i = 0; i < pergunta.options.length; i++) {
+        const botao = document.getElementById("opt-" + i);
+        if (i !== pergunta.correct && botao && !botao.disabled) {
+            alternativasErradas.push(i);
+        }
+    }
+
+    if (alternativasErradas.length === 0) return;
+
+    const sorteada = Math.floor(Math.random() * alternativasErradas.length);
+    const indice = alternativasErradas[sorteada];
+
+    if (!consumirAjuda("bios")) return;
+
+    const botaoEliminado = document.getElementById("opt-" + indice);
+    botaoEliminado.disabled = true;
+    botaoEliminado.classList.remove("selected");
+    botaoEliminado.classList.add("eliminated");
+
+    if (selectedOptionIndex === indice) selectedOptionIndex = null;
+
+    const confirmar = document.getElementById("btn-confirm");
+    if (confirmar) confirmar.disabled = selectedOptionIndex === null;
+
+    const feedback = document.getElementById("answer-feedback");
+    if (feedback) feedback.textContent = "Limpar Cache ativado! Uma alternativa incorreta foi eliminada.";
+}
+
+function useForum() {
+    if (!podeUsarAjuda("forum")) return;
+    const pergunta = questions[currentQuestionIndex];
+    if (!consumirAjuda("forum")) return;
+
+    let dica = pergunta.nivel === 1
+        ? "Pense na função principal do componente ou dispositivo citado."
+        : pergunta.nivel === 2
+        ? "Compare as funções das alternativas e elimine as que não combinam."
+        : "Analise os detalhes técnicos e pense na solução correta para o cenário.";
+
+    showHelpModal("Perguntar à Comunidade", dica);
+}
+
+function useSenior() {
+    if (!podeUsarAjuda("senior")) return;
+    const pergunta = questions[currentQuestionIndex];
+    if (!consumirAjuda("senior")) return;
+
+    let dica = pergunta.nivel === 1
+        ? "Identifique se a pergunta envolve processamento, memória, armazenamento ou alimentação."
+        : pergunta.nivel === 2
+        ? "Concentre-se na finalidade do componente e descarte as opções genéricas."
+        : "Raciocine como um técnico: considere compatibilidade, causas prováveis e consequências.";
+
+    showHelpModal("Consultar o Expert", dica);
+}
+
+function conectarBotoesDeAjuda() {
+    const ajudas = [
+        ["help-bios", useBios],
+        ["help-forum", useForum],
+        ["help-senior", useSenior]
+    ];
+
+    ajudas.forEach(function ([id, funcao]) {
+        const botao = document.getElementById(id);
+        if (!botao || botao.dataset.ajudaConectada === "true") return;
+        botao.dataset.ajudaConectada = "true";
+        botao.addEventListener("click", funcao);
+    });
+}
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => {
+        conectarBotoesDeAjuda();
+        renderRanking();
+    }, { once: true });
+} else {
+    conectarBotoesDeAjuda();
+    renderRanking();
+}
 
 /* =====================================
-   AJUDAS
+   LOJA DE NAVES & MINI-GAME (SHMUP NEON)
 ===================================== */
 
-function consumeHelp(name) {
-    helpsAvailable[name] = false;
-    const button = $("help-" + name);
-    if (button) {
-        button.disabled = true;
-        const counter = button.querySelector(".help-count");
-        if (counter) counter.textContent = "Usada";
+let playerCredits = 0;
+let ownedShips = [true, false, false, false, false];
+let selectedShipIndex = 0;
+
+const shipCatalog = [
+    { name: "Alpha Defender", cost: 0, color: "#a78bfa", desc: "Nave leve de patrulha. Tiro simples." },
+    { name: "Cyber Blade", cost: 500000, color: "#38bdf8", desc: "Velocidade reforçada e tiros duplos." },
+    { name: "Neon Phantom", cost: 500000, color: "#f0abfc", desc: "Casco tecnológico e disparos rápidos." },
+    { name: "Quantum Cruiser", cost: 500000, color: "#4ade80", desc: "Motor quântico com alcance estendido." },
+    { name: "Mestre Tech (Rara)", cost: 1000000, color: "#ffd45c", desc: "Nave suprema lendária! Dispara Feixe de Laser Estelar Contínuo." }
+];
+
+function openShop(earnedMoney = 0) {
+    playerCredits = earnedMoney;
+    if ($("player-credits")) {
+        $("player-credits").textContent = formatMoney(playerCredits);
     }
+    renderShop();
+    showScreen("screen-shop");
 }
 
-function showHelpModal(title, message) {
-    $("helpModalTitle").textContent = title;
-    $("helpModalBody").textContent = message;
+function renderShop() {
+    const container = $("ships-container");
+    if (!container) return;
+    container.innerHTML = "";
 
-    if (window.bootstrap && $("helpModal")) {
-        const modal = bootstrap.Modal.getOrCreateInstance($("helpModal"));
-        modal.show();
-    } else {
-        alert(title + "\n\n" + message);
-    }
-}
+    shipCatalog.forEach((ship, index) => {
+        const isOwned = ownedShips[index];
+        const isSelected = selectedShipIndex === index;
 
-/* Ajuda 1: Limpar Cache (elimina 2 erradas) */
-function useBios() {
-    if (!helpsAvailable.bios || answerLocked || gameEnded) return;
-
-    consumeHelp("bios");
-
-    const correct = questions[currentQuestionIndex].correct;
-    const wrongOptions = [0, 1, 2, 3].filter(index => index !== correct);
-    wrongOptions.sort(() => Math.random() - 0.5);
-    const toRemove = wrongOptions.slice(0, 2);
-
-    toRemove.forEach(index => {
-        const button = $("opt-" + index);
-        button.disabled = true;
-        button.classList.add("eliminated");
-        if (selectedOptionIndex === index) {
-            button.classList.remove("selected");
-            selectedOptionIndex = null;
+        let actionBtn = "";
+        if (isOwned) {
+            actionBtn = `<button class="btn ${isSelected ? 'btn-cosmic' : 'btn-outline-cosmic'}" style="width: 100%; font-size: 0.8rem;" onclick="selectShip(${index})">${isSelected ? '✓ Selecionada' : 'Selecionar'}</button>`;
+        } else {
+            const canBuy = playerCredits >= ship.cost;
+            actionBtn = `<button class="btn btn-cosmic" style="width: 100%; font-size: 0.8rem;" ${canBuy ? '' : 'disabled'} onclick="buyShip(${index})">Comprar (${formatMoney(ship.cost)})</button>`;
         }
+
+        container.innerHTML += `
+            <div style="background: rgba(23, 16, 57, 0.9); border: 2px solid ${isSelected ? 'var(--gold)' : 'var(--border)'}; border-radius: 16px; padding: 18px; text-align: left; display: flex; flex-direction: column; justify-content: space-between; box-shadow: ${isSelected ? '0 0 15px rgba(255, 212, 92, 0.2)' : 'none'};">
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <strong style="color: ${ship.color}; font-size: 0.95rem; font-family: 'Orbitron', sans-serif;">${ship.name}</strong>
+                        <span style="font-size: 1.2rem;">🚀</span>
+                    </div>
+                    <p style="color: var(--muted); font-size: 0.72rem; margin: 8px 0 14px; line-height: 1.5;">${ship.desc}</p>
+                </div>
+                <div>${actionBtn}</div>
+            </div>
+        `;
     });
 
-    $("btn-confirm").disabled = selectedOptionIndex === null;
-    $("answer-feedback").textContent = "⌘ Limpar Cache ativado! Duas alternativas incorretas foram eliminadas.";
+    $("btn-start-minigame").disabled = !ownedShips[selectedShipIndex];
 }
 
-/* Ajuda 2: Perguntar na Comunidade */
-function useForum() {
-    if (!helpsAvailable.forum || answerLocked || gameEnded) return;
+function buyShip(index) {
+    if (playerCredits >= shipCatalog[index].cost) {
+        playerCredits -= shipCatalog[index].cost;
+        ownedShips[index] = true;
+        selectedShipIndex = index;
+        $("player-credits").textContent = formatMoney(playerCredits);
+        renderShop();
+    }
+}
 
-    consumeHelp("forum");
+function selectShip(index) {
+    if (ownedShips[index]) {
+        selectedShipIndex = index;
+        renderShop();
+    }
+}
 
-    const question = questions[currentQuestionIndex];
-    const correct = question.correct;
+/* LOGICA AVANÇADA DO MINI-GAME */
+let mgCanvas, mgCtx;
+let shipX = 320, shipY = 320;
+let bullets = [];
+let enemies = [];
+let mgScore = 0;
+let keysPressed = {};
+let gameLoopInterval = null;
 
-    // 70% de chance de acertar a sugestão
-    let suggestedAnswer;
-    if (Math.random() < 0.7) {
-        suggestedAnswer = correct;
+function startMiniGame() {
+    showScreen("screen-minigame");
+    mgCanvas = $("minigame-canvas");
+    if (!mgCanvas) return;
+    mgCtx = mgCanvas.getContext("2d");
+
+    shipX = mgCanvas.width / 2 - 25;
+    shipY = mgCanvas.height - 75;
+    bullets = [];
+    enemies = [];
+    mgScore = 0;
+    $("minigame-score").textContent = "Pontos: 0";
+
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+
+    if (gameLoopInterval) clearInterval(gameLoopInterval);
+    gameLoopInterval = setInterval(updateMiniGame, 1000 / 60);
+}
+
+function handleKeyDown(e) {
+    keysPressed[e.code] = true;
+    if (e.code === "Space") {
+        shootLaser();
+        e.preventDefault();
+    }
+}
+
+function handleKeyUp(e) {
+    keysPressed[e.code] = false;
+}
+
+function shootLaser() {
+    const isLendaria = selectedShipIndex === 4;
+    if (isLendaria) {
+        bullets.push({ x: shipX + 21, y: shipY - 15, width: 10, height: 35, laser: true, color: "#67e8f9" });
+    } else if (selectedShipIndex === 1 || selectedShipIndex === 3) {
+        bullets.push({ x: shipX + 8, y: shipY, width: 4, height: 16, laser: false, color: "#38bdf8" });
+        bullets.push({ x: shipX + 38, y: shipY, width: 4, height: 16, laser: false, color: "#38bdf8" });
     } else {
-        const wrongs = [0, 1, 2, 3].filter(i => i !== correct);
-        suggestedAnswer = wrongs[Math.floor(Math.random() * wrongs.length)];
+        bullets.push({ x: shipX + 23, y: shipY, width: 5, height: 16, laser: false, color: "#facc15" });
+    }
+}
+
+function updateMiniGame() {
+    if (!mgCtx || !mgCanvas) return;
+
+    if ((keysPressed["ArrowLeft"] || keysPressed["KeyA"]) && shipX > 10) shipX -= 6.5;
+    if ((keysPressed["ArrowRight"] || keysPressed["KeyD"]) && shipX < mgCanvas.width - 60) shipX += 6.5;
+
+    if (Math.random() < 0.04) {
+        enemies.push({
+            x: Math.random() * (mgCanvas.width - 50),
+            y: -50,
+            width: 44,
+            height: 44,
+            speed: 2 + Math.random() * 2.5
+        });
     }
 
-    showHelpModal(
-        "Perguntar na Comunidade",
-        "A galera da comunidade sugere a alternativa " +
-        String.fromCharCode(65 + suggestedAnswer) +
-        ") " + question.options[suggestedAnswer] +
-        ".\n\nLembre-se: a sugestão pode estar errada!"
-    );
+    bullets.forEach(b => b.y -= 10);
+    bullets = bullets.filter(b => b.y > -40);
+
+    enemies.forEach(en => en.y += en.speed);
+    enemies = enemies.filter(en => en.y < mgCanvas.height + 50);
+
+    bullets.forEach((b, bIdx) => {
+        enemies.forEach((en, eIdx) => {
+            if (b.x < en.x + en.width && b.x + b.width > en.x && b.y < en.y + en.height && b.y + b.height > en.y) {
+                enemies.splice(eIdx, 1);
+                if (!b.laser) bullets.splice(bIdx, 1);
+                mgScore += 100;
+                $("minigame-score").textContent = "Pontos: " + mgScore;
+            }
+        });
+    });
+
+    mgCtx.clearRect(0, 0, mgCanvas.width, mgCanvas.height);
+
+    // Estrelas
+    mgCtx.fillStyle = "#ffffff";
+    for (let i = 0; i < 4; i++) {
+        mgCtx.fillRect(Math.random() * mgCanvas.width, Math.random() * mgCanvas.height, 2, 2);
+    }
+
+    // Inimigos
+    enemies.forEach(en => {
+        mgCtx.save();
+        mgCtx.fillStyle = "#22c55e";
+        mgCtx.beginPath();
+        mgCtx.moveTo(en.x + 22, en.y + 20);
+        mgCtx.lineTo(en.x, en.y);
+        mgCtx.lineTo(en.x + 10, en.y + 35);
+        mgCtx.closePath();
+        mgCtx.fill();
+
+        mgCtx.beginPath();
+        mgCtx.moveTo(en.x + 22, en.y + 20);
+        mgCtx.lineTo(en.x + 44, en.y);
+        mgCtx.lineTo(en.x + 34, en.y + 35);
+        mgCtx.closePath();
+        mgCtx.fill();
+
+        mgCtx.fillStyle = "#15803d";
+        mgCtx.fillRect(en.x + 12, en.y + 10, 20, 24);
+
+        mgCtx.fillStyle = "#facc15";
+        mgCtx.shadowBlur = 10;
+        mgCtx.shadowColor = "#facc15";
+        mgCtx.fillRect(en.x + 18, en.y + 16, 8, 8);
+        mgCtx.restore();
+    });
+
+    // Tiros
+    bullets.forEach(b => {
+        mgCtx.save();
+        mgCtx.fillStyle = b.color;
+        mgCtx.shadowBlur = 12;
+        mgCtx.shadowColor = b.color;
+
+        if (b.laser) {
+            mgCtx.fillRect(b.x, b.y, b.width, b.height);
+            mgCtx.fillStyle = "#ffffff";
+            mgCtx.fillRect(b.x + 2, b.y, b.width - 4, b.height);
+        } else {
+            mgCtx.fillRect(b.x, b.y, b.width, b.height);
+        }
+        mgCtx.restore();
+    });
+
+    // Nave
+    const currentShip = shipCatalog[selectedShipIndex];
+    mgCtx.save();
+    mgCtx.shadowBlur = 15;
+    mgCtx.shadowColor = currentShip.color;
+
+    // Fogo dos Propulsores
+    mgCtx.fillStyle = "#38bdf8";
+    mgCtx.beginPath();
+    mgCtx.moveTo(shipX + 10, shipY + 45);
+    mgCtx.lineTo(shipX + 16, shipY + 60 + Math.random() * 8);
+    mgCtx.lineTo(shipX + 22, shipY + 45);
+    mgCtx.fill();
+
+    mgCtx.beginPath();
+    mgCtx.moveTo(shipX + 30, shipY + 45);
+    mgCtx.lineTo(shipX + 36, shipY + 60 + Math.random() * 8);
+    mgCtx.lineTo(shipX + 42, shipY + 45);
+    mgCtx.fill();
+
+    // Asas
+    mgCtx.fillStyle = currentShip.color;
+    mgCtx.beginPath();
+    mgCtx.moveTo(shipX + 26, shipY);
+    mgCtx.lineTo(shipX + 6, shipY + 38);
+    mgCtx.lineTo(shipX + 16, shipY + 45);
+    mgCtx.lineTo(shipX + 36, shipY + 45);
+    mgCtx.lineTo(shipX + 46, shipY + 38);
+    mgCtx.closePath();
+    mgCtx.fill();
+
+    // Cockpit
+    mgCtx.fillStyle = "#ffffff";
+    mgCtx.beginPath();
+    mgCtx.moveTo(shipX + 26, shipY + 12);
+    mgCtx.lineTo(shipX + 20, shipY + 28);
+    mgCtx.lineTo(shipX + 32, shipY + 28);
+    mgCtx.closePath();
+    mgCtx.fill();
+
+    mgCtx.restore();
 }
 
-/* Ajuda 3: Consultar o Expert */
-function useSenior() {
-    if (!helpsAvailable.senior || answerLocked || gameEnded) return;
-
-    consumeHelp("senior");
-
-    const question = questions[currentQuestionIndex];
-
-    showHelpModal(
-        "Consultar o Expert",
-        "O Expert disse que a resposta correta é:\n\n" +
-        String.fromCharCode(65 + question.correct) +
-        ") " + question.options[question.correct] + "."
-    );
+function exitMiniGame() {
+    if (gameLoopInterval) clearInterval(gameLoopInterval);
+    window.removeEventListener("keydown", handleKeyDown);
+    window.removeEventListener("keyup", handleKeyUp);
+    
+    // Atualiza a pontuação máxima no ranking
+    saveScoreToRanking(playerName, lastEarnedPrize, mgScore);
+    backToMenu();
 }
-
 
 /* =====================================
    FUNDO ANIMADO DE ESTRELAS
@@ -848,5 +1197,4 @@ function useSenior() {
     window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
     drawStars();
-    
 })();
