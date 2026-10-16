@@ -46,12 +46,11 @@
         <!-- TELA INICIAL -->
         <section id="screen-start" class="screen active">
 
-        <div class="name-input-area">
-            
-    <label for="player-name-input">Seu nome:</label>
-    <input type="text" id="player-name-input" placeholder="Digite seu nome aqui" maxlength="20" autocomplete="off">
+            <div class="name-input-area">
+                <label for="player-name-input">Seu nome:</label>
+                <input type="text" id="player-name-input" placeholder="Digite seu nome aqui" maxlength="20" autocomplete="off">
+            </div>
 
-        </div>
             <div class="hero">
 
                 <div class="hero-content">
@@ -144,6 +143,27 @@
                 </div>
 
             </div>
+
+            <!-- TABELA TOP 10 NO MENU -->
+            <div class="panel" style="max-width: 100%; margin-top: 20px;">
+                <h3 style="font-family: 'Orbitron', sans-serif; color: var(--gold); font-size: 1.1rem; margin-bottom: 15px;">🏆 TOP 10 - MELHORES PONTUAÇÕES</h3>
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover align-middle mb-0" style="background: transparent; font-size: 0.85rem;">
+                        <thead>
+                            <tr style="color: var(--cyan); border-bottom: 1px solid var(--border);">
+                                <th>#</th>
+                                <th>Jogador</th>
+                                <th>Prêmio Ganho</th>
+                                <th>Mini-game</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ranking-tbody">
+                            <!-- Injetado via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </section>
 
         <!-- TELA DE REGRAS -->
@@ -168,9 +188,9 @@
                     <li>
                         <strong>03 · Três ajudas especiais</strong>
                         <small>
-                            Reset da BIOS elimina duas alternativas erradas.
-                            Fórum Tech consulta especialistas.
-                            Técnico Sênior revela a resposta.
+                            Limpar Cache elimina uma alternativa incorreta.<br>
+                            Perguntar na Comunidade dá uma dica conceitual.<br>
+                            Consultar o Expert orienta o raciocínio correto.
                         </small>
                     </li>
 
@@ -195,7 +215,8 @@
         <!-- TELA DO JOGO -->
         <section id="screen-game" class="screen">
 
-            <div id="player-name-display" class="player-name"></div>
+            <div class="game-header">
+                <div id="player-name-display" class="player-name"></div>
                 <span>⌘ MISSÃO EM ANDAMENTO</span>
 
                 <div class="question-counter">
@@ -303,21 +324,35 @@
 
                         <h3>✧ Ajudas especiais</h3>
 
-                       <button id="help-bios" ...>
-    Limpar Cache
-    <span class="help-count">1x</span>
-</button>
+                        <button id="help-bios">
+                            <span class="help-icon">🧹</span>
+                            <div class="help-description">
+                                <strong>Limpar Cache</strong>
+                                <small>Elimina 1 alternativa errada</small>
+                            </div>
+                            <span class="help-count">1x</span>
+                        </button>
 
-                <button id="help-forum" ...>
-                        Perguntar na Comunidade
-                         <span class="help-count">1x</span>
-                </button>
+                        <button id="help-forum">
+                            <span class="help-icon">💬</span>
+                            <div class="help-description">
+                                <strong>Comunidade</strong>
+                                <small>Receba uma dica do fórum</small>
+                            </div>
+                            <span class="help-count">1x</span>
+                        </button>
 
-                <button id="help-senior" ...>
-                        Consultar o Expert
-                    <span class="help-count">1x</span>
+                        <button id="help-senior">
+                            <span class="help-icon">🎓</span>
+                            <div class="help-description">
+                                <strong>Técnico Sênior</strong>
+                                <small>Orientação do especialista</small>
+                            </div>
+                            <span class="help-count">1x</span>
+                        </button>
 
-                </button>
+                    </div>
+
                     <!-- STATUS -->
                     <div class="rank-panel">
                         <small>✦ SEU STATUS</small>
@@ -352,12 +387,56 @@
                     <strong id="end-questions">0/10</strong>
                 </div>
 
-                <button class="btn btn-cosmic w-100 mt-4" onclick="backToMenu()">
-                    ↻ Jogar novamente
+                <!-- Botão liberado somente no final -->
+                <button class="btn btn-outline-cosmic w-100 mt-3" onclick="openShopFromEnd()">
+                    🚀 Ir para o Hangar / Loja de Naves
+                </button>
+
+                <button class="btn btn-cosmic w-100 mt-2" onclick="backToMenu()">
+                    ↻ Voltar ao Menu Principal
                 </button>
 
             </article>
 
+        </section>
+
+        <!-- TELA DA LOJA DE NAVES (HANGAR) -->
+        <section id="screen-shop" class="screen">
+            <article class="panel" style="max-width: 850px; text-align: center; margin: 0 auto;">
+                <p class="eyebrow">✦ HANGAR ESPACIAL</p>
+                <h2 style="margin-bottom: 10px;">Loja de <em>Naves</em></h2>
+                <p style="color: var(--muted); margin-bottom: 20px;">Use seu prêmio acumulado nesta partida para comprar naves e jogar a Batalha Espacial!</p>
+                
+                <div style="font-size: 1.2rem; color: var(--gold); margin-bottom: 25px; font-family: 'Orbitron', sans-serif;">
+                    Créditos desta Partida: <strong id="player-credits">R$ 0</strong>
+                </div>
+
+                <div id="ships-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; margin-bottom: 30px;">
+                    <!-- Naves injetadas via JavaScript -->
+                </div>
+
+                <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                    <button class="btn btn-outline-cosmic btn-lg" onclick="backToMenu()">← Salvar & Voltar ao Menu</button>
+                    <button class="btn btn-cosmic btn-lg" id="btn-start-minigame" onclick="startMiniGame()">▶ Iniciar Batalha Espacial</button>
+                </div>
+            </article>
+        </section>
+
+        <!-- TELA DO MINI-GAME DE NAVINHA -->
+        <section id="screen-minigame" class="screen">
+            <div class="panel" style="max-width: 750px; padding: 20px; text-align: center; margin: 0 auto;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                    <span style="color: var(--cyan); font-family: 'Orbitron', sans-serif; font-size: 0.9rem;">DEFESA TECH ESPACIAL</span>
+                    <span style="color: var(--gold); font-family: 'Orbitron', sans-serif;" id="minigame-score">Pontos: 0</span>
+                    <button class="btn btn-outline-cosmic" style="padding: 5px 12px; font-size: 0.8rem;" onclick="exitMiniGame()">Sair / Finalizar</button>
+                </div>
+                
+                <canvas id="minigame-canvas" width="680" height="420" style="width: 100%; height: auto; background: #050214; border: 2px solid var(--border); border-radius: 14px; display: block; margin: 0 auto; box-shadow: 0 0 20px rgba(124, 58, 237, 0.3);"></canvas>
+                
+                <p style="color: var(--muted); font-size: 0.8rem; margin-top: 15px;">
+                    Controles: Use <strong>← / →</strong> (ou A/D) para mover e <strong>Espaço</strong> para atirar!
+                </p>
+            </div>
         </section>
 
         <!-- RODAPÉ -->
